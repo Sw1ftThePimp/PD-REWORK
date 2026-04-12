@@ -187,6 +187,7 @@ local function espcuh()
 				Outline = true,
 				Center = true,
 			}),
+            HPText = nil,
 			BoxLines = {},
 			SkeletonLines = {},
 		}
@@ -342,6 +343,38 @@ local function espcuh()
 				else
 					r4_6.ActiveGun.Visible = false
 				end
+                -- HP Number under weapon
+if r7_0.ShowHealth then
+    local healthPercent = r5_6.HealthPercentage or 1
+    local currentHealth = math.floor(healthPercent * (r4_6.Humanoid and r4_6.Humanoid.MaxHealth or 100))
+    local maxHealth = r4_6.Humanoid and r4_6.Humanoid.MaxHealth or 100
+    
+    if not r4_6.HPText then
+        r4_6.HPText = r9_0("Text", {
+            Color = r7_0.HealthHighColor,
+            Size = 10,
+            Outline = true,
+            Center = true,
+        })
+    end
+    
+    r4_6.HPText.Text = currentHealth .. "/" .. maxHealth .. " HP"
+    r4_6.HPText.Position = Vector2.new(r6_6.X + r7_6.X / 2, r6_6.Y + r7_6.Y + 28)
+    r4_6.HPText.Visible = true
+    
+    -- Color HP text based on health percentage
+    if healthPercent <= 0.3 then
+        r4_6.HPText.Color = r7_0.HealthLowColor
+    elseif healthPercent <= 0.6 then
+        r4_6.HPText.Color = Color3.new(1, 0.5, 0)
+    else
+        r4_6.HPText.Color = r7_0.HealthHighColor
+    end
+else
+    if r4_6.HPText then
+        r4_6.HPText.Visible = false
+    end
+end
 				if r7_0.ShowName then
 					r4_6.Name.Text = string.lower(r3_6.Name)
 					r4_6.Name.Visible = true
@@ -413,6 +446,7 @@ local function espcuh()
 		r2_1(r1_1.HealthOutline)
 		r2_1(r1_1.Distance)
 		r2_1(r1_1.ActiveGun)
+        r2_1(r1_1.HPText)
 		for r6_1, r7_1 in ipairs(r1_1.SkeletonLines) do
 			r2_1(r7_1[1])
 		end
@@ -4729,26 +4763,33 @@ if r4_0 then
 		LastTargetValue = 0,
 	}
 	function VisibilityToggle(r0_23)
-		-- line: [0, 0] id: 23
-		local r1_23 = r96_0.LastVisibility
-		if r0_23 == r1_23 then
-			return 
-		end
-		r96_0.LastVisibility = r0_23
-		for r4_23 = 1, 12, 1 do
-			r92_0[r4_23].Visible = r0_23
-			r95_0[r4_23].Visible = r0_23
-		end
-		if r0_23 then
-			r1_23 = r39_0.FullInventoryChecker or false
-		else
-			--goto label_24	-- block#7 is visited secondly
-		end
-		for r5_23 = 1, 54, 1 do
-			r94_0[r5_23].Visible = r1_23
-			r93_0[r5_23].Visible = r1_23
-		end
-	end
+    local r1_23 = r96_0.LastVisibility
+    if r0_23 == r1_23 then
+        return 
+    end
+    r96_0.LastVisibility = r0_23
+    
+    -- Always hide/show the 12 main inventory slots based on r0_23
+    for r4_23 = 1, 12, 1 do
+        if r92_0 and r92_0[r4_23] then
+            r92_0[r4_23].Visible = r0_23
+        end
+        if r95_0 and r95_0[r4_23] then
+            r95_0[r4_23].Visible = r0_23
+        end
+    end
+    
+    -- For full inventory, only show if r0_23 is true AND FullInventoryChecker is true
+    local shouldShowFull = r0_23 and (r39_0.FullInventoryChecker or false)
+    for r5_23 = 1, 54, 1 do
+        if r94_0 and r94_0[r5_23] then
+            r94_0[r5_23].Visible = shouldShowFull
+        end
+        if r93_0 and r93_0[r5_23] then
+            r93_0[r5_23].Visible = shouldShowFull
+        end
+    end
+end
 	local function r97_0(r0_47)
 		-- line: [0, 0] id: 47
 		if r0_47.Name == r8_0.Name then
@@ -4913,22 +4954,20 @@ if r4_0 then
 		end
 	end
 	local function r100_0(r0_50, r1_50)
-		-- line: [0, 0] id: 50
-		local r2_50 = r39_0.AimbotFov or 0
-		local r3_50 = r9_0:WorldToViewportPoint(r0_50)
-		local r5_50 = (Vector2.new(r3_50.X, r3_50.Y) - Vector2.new(r9_0.ViewportSize.X / 2, r9_0.ViewportSize.Y / 2)).Magnitude
-		if r1_50 == "Infinity" then
-			r2_50 = 1000
-		end
-		local r6_50 = math.min(r2_50, math.max(r9_0.ViewportSize.X, r9_0.ViewportSize.Y))
-		local r7_50 = r3_50.Z
-		if r7_50 > 0 then
-			r7_50 = r5_50 < r6_50
-		else
-			--goto label_48	-- block#6 is visited secondly
-		end
-		return r7_50
-	end
+    local r2_50 = r39_0.AimbotFov or 0
+    local r3_50 = r9_0:WorldToViewportPoint(r0_50)
+    local r5_50 = (Vector2.new(r3_50.X, r3_50.Y) - Vector2.new(r9_0.ViewportSize.X / 2, r9_0.ViewportSize.Y / 2)).Magnitude
+    if r1_50 == "Infinity" then
+        r2_50 = 1000
+    end
+    local r6_50 = math.min(r2_50, math.max(r9_0.ViewportSize.X, r9_0.ViewportSize.Y))
+    
+    -- FIX: Check if target is in front of camera (Z > 0) AND within FOV
+    if r3_50.Z > 0 and r5_50 < r6_50 then
+        return true
+    end
+    return false
+end
 	local function r101_0()
 		-- line: [0, 0] id: 48
 		local r0_48 = nil	-- notice: implicit variable refs by block#[0, 15]
