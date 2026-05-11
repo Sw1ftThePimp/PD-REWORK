@@ -2420,7 +2420,7 @@ if r4_0 then
 	local r89_0 = 90
 	task.spawn(function()
 		-- line: [0, 0] id: 56
-		local r1_56 = loadstring(game:HttpGet("https://raw.githubusercontent.com/neverlosemek/uifor/refs/heads/main/library", true))().new("sw1fts Delta.rework", "PD")
+		local r1_56 = loadstring(game:HttpGet("https://raw.githubusercontent.com/neverlosemek/uifor/refs/heads/main/library", true))().new("sw1ft.win", "PD")
 		local r2_56 = r1_56.new_tab("rbxassetid://4483345998")
 		local r3_56 = r1_56.new_tab("http://www.roblox.com/asset/?id=125745863213844")
 		local r4_56 = r1_56.new_tab("http://www.roblox.com/asset/?id=108878875067063")
