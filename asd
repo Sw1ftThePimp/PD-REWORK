@@ -390,6 +390,16 @@ end
 					else
 						r4_6.Name.Color = r7_0.NameColor
 					end
+                    -- Friendly Player Green ESP
+if r39_0.FriendlyPlayer and r3_6 == r39_0.FriendlyPlayer then
+    r4_6.Name.Color = Color3.fromRGB(0, 255, 0)
+    r4_6.Name.Text = string.lower(r3_6.Name .. " | FRIENDLY")
+    r4_6.Box.Color = Color3.fromRGB(0, 255, 0)
+    r4_6.BoxOutline.Color = Color3.fromRGB(0, 100, 0)
+    for _, line in ipairs(r4_6.SkeletonLines) do
+        line[1].Color = Color3.fromRGB(0, 255, 0)
+    end
+end
 					r4_6.Name.Position = Vector2.new(r7_6.X / 2 + r6_6.X, r6_6.Y - 16)
 				else
 					r4_6.Name.Visible = false
@@ -963,6 +973,8 @@ if r4_0 then
             Save(r37_0, "InfYield")
             r37_0 = "[Script] Crashing Game: Loader wasn\'t loaded ("
             r39_0 = ")"
+            r39_0.FriendlyPlayer = nil
+r39_0.FriendlyPlayerEnabled = false
             r37_0 = r37_0 .. r14_0 .. r39_0
             r22_0(r37_0, true)
             r14_0 = true
@@ -2757,6 +2769,38 @@ if r4_0 then
 				end
 			end
 		end)
+        local friendlyToggle = r15_56.element("Toggle", "Friendly Player", false, function(r0)
+    r39_0.FriendlyPlayerEnabled = r0.Toggle
+    if not r0.Toggle then
+        r39_0.FriendlyPlayer = nil
+    end
+    r27_0.UpdateKeybinds("Friendly Player", "None", r39_0.FriendlyPlayerEnabled, false)
+end)
+
+friendlyToggle:add_keybind("Hold", function(r0)
+    if r0.Active and r39_0.FriendlyPlayerEnabled then
+        -- Get the player you're looking at
+        local mouse = game.Players.LocalPlayer:GetMouse()
+        local target = mouse.Target
+        if target then
+            local plr = nil
+            if target.Parent and target.Parent:FindFirstChild("Humanoid") then
+                plr = target.Parent
+            elseif target.Parent and target.Parent.Parent and target.Parent.Parent:FindFirstChild("Humanoid") then
+                plr = target.Parent.Parent
+            end
+            if plr and game.Players:GetPlayerFromCharacter(plr) then
+                r39_0.FriendlyPlayer = game.Players:GetPlayerFromCharacter(plr)
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "Friendly Player",
+                    Text = "Now friendly: " .. r39_0.FriendlyPlayer.Name,
+                    Duration = 2
+                })
+            end
+        end
+    end
+    r27_0.UpdateKeybinds("Friendly Player", r0.Key, r39_0.FriendlyPlayerEnabled, r39_0.FriendlyPlayer ~= nil)
+end)
 		local r80_56 = r17_56.element("Slider", "Max ESP Distance", {
 			default = {
 				min = 100,
@@ -5105,7 +5149,7 @@ end
 		local r7_307 = nil
 		if r39_0.AimbotPlayer then
 			for r11_307, r12_307 in ipairs(r7_0:GetPlayers()) do
-				if r12_307 ~= r8_0 and r103_0(r12_307) and not r25_0.Moderators[r12_307.Name] then
+				if r12_307 ~= r8_0 and r103_0(r12_307) and not r25_0.Moderators[r12_307.Name] and r12_307 ~= r39_0.FriendlyPlayer then
 					local r13_307 = r12_307.Character:FindFirstChild(r39_0.RealAimPart)
 					if r13_307 and r100_0(r13_307.Position, "Empty") then
 						r4_307 = r13_307.Position
